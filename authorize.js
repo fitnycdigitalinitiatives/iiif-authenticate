@@ -55,7 +55,7 @@ async function authorize(token, id) {
     case 'private':
       return false;
     default:
-      return true;
+      return false;
   }
 }
 
