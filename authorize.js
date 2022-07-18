@@ -1,7 +1,6 @@
 const isObject = require('lodash.isobject');
 const isString = require('lodash.isstring');
 const jwt = require('jsonwebtoken');
-const URI = require('uri-js');
 const AWS = require('aws-sdk');
 const env_vars = require('./env-config.json');
 
