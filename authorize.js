@@ -8,15 +8,6 @@ const apiTokenSecret = env_vars.api_token_secret;
 const region = env_vars.region;
 const table = env_vars.table;
 
-function allowedFromRegexes(str) {
-  var configValues = isString(str) ? str.split(';') : [];
-  var result = [];
-  for (var re in configValues) {
-    result.push(new RegExp(configValues[re]));
-  }
-  return result;
-}
-
 function getCurrentUser(token) {
   if (isString(token)) {
     try {
@@ -78,8 +69,12 @@ async function getItemVisibility(id) {
     if (!isObject(result)) {
       return null;
     }
-    if (result.Item.visibility) {
-      return result.Item.visibility.toLowerCase();
+    if (result.Item) {
+      if (result.Item.visibility) {
+        return result.Item.visibility.toLowerCase();
+      } else {
+        return null;
+      }
     } else {
       return null;
     }

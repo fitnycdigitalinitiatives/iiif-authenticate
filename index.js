@@ -3,6 +3,34 @@ const authorize = require('./authorize');
 const isObject = require('lodash.isobject');
 const isString = require('lodash.isstring');
 
+// Integer RegEx
+const IR = '\\d+';
+// Float RegEx
+const FR = '\\d+(?:\.\\d+)?'; // eslint-disable-line no-useless-escape
+
+const Validators = {
+  quality: ['color', 'gray', 'bitonal', 'default'],
+  format: ['jpg', 'jpeg', 'tif', 'tiff', 'png', 'webp'],
+  region: ['full', 'square', `pct:${FR},${FR},${FR},${FR}`, `${IR},${IR},${IR},${IR}`],
+  size: ['full', 'max', `pct:${FR}`, `${IR},`, `,${IR}`, `\\!?${IR},${IR}`],
+  rotation: `\\!?${FR}`
+};
+
+function iiifRegExp() {
+  const transformation = ['region', 'size', 'rotation'].map(type => validator(type)).join('/') +
+    '/' + validator('quality') + '.' + validator('format');
+
+  return new RegExp(`^/?(?<id>.+?)/(?:(?<info>info.json)|${transformation})$`);
+}
+
+function validator(type) {
+  let result = Validators[type];
+  if (result instanceof Array) {
+    result = result.join('|');
+  }
+  return `(?<${type}>${result})`;
+}
+
 function getEventHeader(request, name) {
   if (request.headers && request.headers[name] && request.headers[name].length > 0) {
     return request.headers[name][0].value;
@@ -49,24 +77,31 @@ function viewerRequestOptions(request) {
 async function viewerRequestIiif(request) {
   // Check if this is a request for resource itself rather something else that wouldn't need to be authorized (ie endpoint or something that would be redirected)
   const path = decodeURI(request.uri);
+  const prefix = '/iiif/2/';
   const segments = path.split('/');
-  if ((path.startsWith('/iiif/2/')) && (segments.length > 4) && (segments[4])) {
-    const id = decodeURIComponent(segments[3]) + '.tif';
-    const authToken = getBearerToken(request);
-    const authed = await authorize(authToken, id);
-    console.log('Authorized:', authed);
+  if ((path.startsWith(prefix)) && (segments.length > 4)) {
+    const path_suffix = path.substring(prefix.length);
+    const iiif_reg_exp = iiifRegExp().exec(path_suffix);
+    if (iiif_reg_exp && iiif_reg_exp.groups.id) {
+      const id = decodeURIComponent(iiif_reg_exp.groups.id + '.tif');
+      const authToken = getBearerToken(request);
+      const authed = await authorize(authToken, id);
+      console.log('Authorized:', authed);
 
-    // Return a 403 response if not authorized to view the requested item
-    if (!authed) {
-      const response = {
-        status: '403',
-        statusDescription: 'Forbidden',
-        body: 'Forbidden'
-      };
-      return response;
+      // Return a 403 response if not authorized to view the requested item
+      if (!authed) {
+        const response = {
+          status: '403',
+          statusDescription: 'Forbidden',
+          body: 'Forbidden'
+        };
+        return response;
+      }
+
+      return request;
+    } else {
+      return request;
     }
-
-    return request;
   } else {
     return request;
   }
