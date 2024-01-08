@@ -1,12 +1,14 @@
 const isObject = require('lodash.isobject');
 const isString = require('lodash.isstring');
 const jwt = require('jsonwebtoken');
-const AWS = require('aws-sdk');
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBDocumentClient, GetCommand } = require("@aws-sdk/lib-dynamodb");
 const env_vars = require('./env-config.json');
-
 const apiTokenSecret = env_vars.api_token_secret;
 const region = env_vars.region;
 const table = env_vars.table;
+const client = new DynamoDBClient({ region: region });
+const docClient = DynamoDBDocumentClient.from(client);
 
 function getCurrentUser(token) {
   if (isString(token)) {
@@ -51,21 +53,15 @@ async function authorize(token, id) {
 }
 
 async function getItemVisibility(id) {
-  // Set the region
-  AWS.config.update({
-    region: region
-  });
-  const docClient = new AWS.DynamoDB.DocumentClient({
-    apiVersion: '2012-08-10'
-  });
   try {
-    var params = {
+    const command = new GetCommand({
       TableName: table,
       Key: {
-        'key': id
-      }
-    };
-    var result = await docClient.get(params).promise();
+        'key': id,
+      },
+    });
+
+    const result = await docClient.send(command);
     if (!isObject(result)) {
       return null;
     }

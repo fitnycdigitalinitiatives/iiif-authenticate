@@ -1,6 +1,4 @@
-const AWS = require('aws-sdk');
 const authorize = require('./authorize');
-const isObject = require('lodash.isobject');
 const isString = require('lodash.isstring');
 
 // Integer RegEx
@@ -77,10 +75,9 @@ function viewerRequestOptions(request) {
 async function viewerRequestIiif(request) {
   // Check if this is a request for resource itself rather something else that wouldn't need to be authorized (ie endpoint or something that would be redirected)
   const path = decodeURI(request.uri);
-  const prefix = '/iiif/2/';
   const segments = path.split('/');
-  if ((path.startsWith(prefix)) && (segments.length > 4)) {
-    const path_suffix = path.substring(prefix.length);
+  if ((path.startsWith('/iiif/2/') || path.startsWith('/iiif/3/')) && (segments.length > 4)) {
+    const path_suffix = path.substring(8);
     const iiif_reg_exp = iiifRegExp().exec(path_suffix);
     if (iiif_reg_exp && iiif_reg_exp.groups.id) {
       const id = decodeURIComponent(iiif_reg_exp.groups.id + '.tif');
