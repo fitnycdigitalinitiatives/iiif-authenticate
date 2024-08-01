@@ -108,6 +108,12 @@ async function viewerRequestIiif(request) {
       body: robotstext
     };
     return response;
+  } else if (path.startsWith('/favicon.ico')) {
+    const response = {
+      status: '204',
+      statusDescription: 'Does not exist.'
+    };
+    return response;
   } else {
     return request;
   }
