@@ -99,6 +99,16 @@ async function viewerRequestIiif(request) {
     } else {
       return request;
     }
+  } else if (path.startsWith('/robots.txt')) {
+    console.log("Returning robots.txt response.");
+    const robotstext = "User-agent: *\nDisallow: /";
+    console.log(robotstext);
+    const response = {
+      status: '200',
+      statusDescription: 'OK',
+      body: robotstext
+    };
+    return response;
   } else {
     return request;
   }
