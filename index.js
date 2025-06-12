@@ -46,9 +46,10 @@ function getBearerToken(request) {
 }
 
 function addAccessControlHeaders(request, response) {
+  const origin = getEventHeader(request, "origin") || "*";
   response.headers['access-control-allow-origin'] = [{
     key: 'Access-Control-Allow-Origin',
-    value: '*'
+    value: origin
   }];
   response.headers['access-control-allow-headers'] = [{
     key: 'Access-Control-Allow-Headers',
