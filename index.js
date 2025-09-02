@@ -59,6 +59,10 @@ function addAccessControlHeaders(request, response) {
     key: 'Access-Control-Allow-Credentials',
     value: 'true'
   }];
+  response.headers['vary'] = [{
+    key: 'Vary',
+    value: 'Origin'
+  }];
   return response;
 }
 
